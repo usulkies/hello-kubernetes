@@ -38,34 +38,4 @@ jobs:
         run: make build-image-linux
       - name: push
         run: make push-image
-  deploy:
-    name: Deploy to Kubernetes cluster
-    runs-on: ubuntu-latest
-    steps:
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          role-to-assume: arn:aws:iam::969342696885:role/github-oidc-provider-aws
-          role-session-name: mysession123
-          aws-region: eu-west-3
-      - name: 🔎 Check IP
-        run: curl https://api.ipify.org
-      - name: Login to Amazon ECR Private
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1    
-      - name: deploy to cluster
-        uses: kodermax/kubectl-aws-eks@master
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: hello-kubernetes
-          IMAGE_TAG: "1.10.1"
-        with:
-          args: set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        
-      - name: verify deployment
-        uses: kodermax/kubectl-aws-eks@master
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
-        with:
-          args: rollout status deployment/my-app
+
