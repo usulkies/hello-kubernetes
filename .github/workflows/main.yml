@@ -48,6 +48,8 @@ jobs:
           role-to-assume: arn:aws:iam::969342696885:role/github-oidc-provider-aws
           role-session-name: mysession123
           aws-region: eu-west-3
+      - name: 🔎 Check IP
+        run: curl https://api.ipify.org
       - name: Login to Amazon ECR Private
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1    
