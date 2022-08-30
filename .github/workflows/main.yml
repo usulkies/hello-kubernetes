@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: 969342696885.dkr.ecr.eu-west-3.amazonaws.com
-      REPOSITORY: uziel_task
     steps:
       - name: checkout repo
         uses: actions/checkout@v2
