@@ -17,7 +17,7 @@ permissions:
   contents: read
 jobs:
   build: 
-    name: Build and Deploy
+    name: Build and Push
     runs-on: ubuntu-latest
     env:
       REGISTRY: 969342696885.dkr.ecr.eu-west-3.amazonaws.com
@@ -36,5 +36,34 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: build application
         run: make build-image-linux
-      - name: deploy
+      - name: push
         run: make push-image
+  deploy:
+    name: Deploy to Kubernetes cluster
+    runs-on: ubuntu-latest
+    steps:
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::969342696885:role/github-oidc-provider-aws
+          role-session-name: mysession123
+          aws-region: eu-west-3
+      - name: Login to Amazon ECR Private
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1    
+      - name: deploy to cluster
+        uses: kodermax/kubectl-aws-eks@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: hello-kubernetes
+          IMAGE_TAG: "1.10.1"
+        with:
+          args: set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        
+      - name: verify deployment
+        uses: kodermax/kubectl-aws-eks@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+        with:
+          args: rollout status deployment/my-app
